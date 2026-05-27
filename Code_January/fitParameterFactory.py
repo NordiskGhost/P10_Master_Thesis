@@ -99,32 +99,28 @@ def n_triangulene(N):
     return xyz_array * CC_BOND
 
 def add_hydrogen(xyz):
-    xyz = np.asarray(xyz)
-    nC = len(xyz)
-    neighbors = [[] for _ in range(nC)]
-    for i in range(nC):
-        for j in range(i+1, nC):
-            d = np.linalg.norm(xyz[i] - xyz[j])
-            if d < CC_CUTOFF:
+    nrC = len(xyz)
+    neighbors = [[] for _ in range(nrC)]
+    for i in range(nrC):
+        for j in range(i+1, nrC):
+            dist = np.linalg.norm(xyz[i] - xyz[j])
+            if dist < CC_CUTOFF:
                 neighbors[i].append(j)
                 neighbors[j].append(i)
     hydrogens = []
     for i, nbrs in enumerate(neighbors):
         coord = len(nbrs)
-        # sp2 carbon wants 3 bonds
-        missing = 3 - coord
+        missing = 3 - coord # sp2 carbon has three bonds in total
         if missing <= 0:
             continue
         ri = xyz[i]
-        # Sum of bond vectors to neighbors
         bond_vecs = np.zeros(3)
-        for j in nbrs:
+        for j in nbrs: # Sum of bond vectors to neighbors since the outward direction is opposite of bond sum
             bond_vecs += (xyz[j] - ri)
-        # Outward direction is opposite of bond sum
         if np.linalg.norm(bond_vecs) < 1e-6:
             continue
         direction = -bond_vecs / np.linalg.norm(bond_vecs)
-        # Add hydrogens (usually 1 for triangulene edges)
+        # Add hydrogen on the remaining missing bonds
         for _ in range(missing):
             h_pos = ri + CH_BOND * direction
             hydrogens.append(h_pos)
